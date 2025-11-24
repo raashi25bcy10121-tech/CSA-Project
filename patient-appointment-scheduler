@@ -1,0 +1,152 @@
+class AppointmentScheduler:
+    def __init__(self):
+        self.appointments = {}
+        self.next_id = 1
+    
+    def schedule_appointment(self, patient_name, doctor, date, time, reason=""):
+        appointment_id = self.next_id
+        appointment_datetime = f"{date} {time}"
+        
+        for appt_id, details in self.appointments.items():
+            if details['doctor'] == doctor and details['datetime'] == appointment_datetime:
+                print(f"Time slot not available for Dr {doctor} at {appointment_datetime}")
+                return False
+        
+        self.appointments[appointment_id] = {
+            'patient_name': patient_name,
+            'doctor': doctor,
+            'datetime': appointment_datetime,
+            'reason': reason,
+            'status': 'scheduled'
+        }
+        
+        print(f"Appointment scheduled. ID: {appointment_id}")
+        self.next_id += 1
+        return True
+    
+    def view_appointments(self, date=None, doctor=None):
+        print("\nAPPOINTMENT SCHEDULE")
+        print("-------------------")
+        
+        if not self.appointments:
+            print("No appointments scheduled.")
+            return
+        
+        for appt_id, details in self.appointments.items():
+            if date and not details['datetime'].startswith(date):
+                continue
+            if doctor and details['doctor'] != doctor:
+                continue
+                
+            print(f"ID: {appt_id}")
+            print(f"Patient: {details['patient_name']}")
+            print(f"Doctor: Dr {details['doctor']}")
+            print(f"Time: {details['datetime']}")
+            print(f"Reason: {details['reason']}")
+            print(f"Status: {details['status']}")
+            print("---")
+    
+    def cancel_appointment(self, appointment_id):
+        if appointment_id in self.appointments:
+            self.appointments[appointment_id]['status'] = 'cancelled'
+            print(f"Appointment {appointment_id} cancelled.")
+        else:
+            print(f"Appointment ID {appointment_id} not found.")
+    
+    def complete_appointment(self, appointment_id):
+        if appointment_id in self.appointments:
+            self.appointments[appointment_id]['status'] = 'completed'
+            print(f"Appointment {appointment_id} marked as completed.")
+        else:
+            print(f"Appointment ID {appointment_id} not found.")
+    
+    def view_daily_schedule(self, date):
+        print(f"\nDaily Schedule for {date}")
+        print("-------------------")
+        
+        daily_appointments = []
+        for appt_id, details in self.appointments.items():
+            if details['datetime'].startswith(date) and details['status'] == 'scheduled':
+                daily_appointments.append((appt_id, details))
+        
+        if not daily_appointments:
+            print("No appointments scheduled for this date.")
+            return
+        
+        daily_appointments.sort(key=lambda x: x[1]['datetime'])
+        
+        for appt_id, details in daily_appointments:
+            time = details['datetime'].split()[1]
+            print(f"{time} - Dr {details['doctor']} - {details['patient_name']} - {details['reason']}")
+
+def main():
+    scheduler = AppointmentScheduler()
+    
+    scheduler.schedule_appointment("John Smith", "Johnson", "2024-01-15", "09:00", "Annual checkup")
+    scheduler.schedule_appointment("Maria Garcia", "Wilson", "2024-01-15", "10:30", "Follow-up")
+    scheduler.schedule_appointment("David Chen", "Johnson", "2024-01-15", "14:00", "Vaccination")
+    
+    while True:
+        print("\nHOSPITAL APPOINTMENT SCHEDULER")
+        print("1. Schedule New Appointment")
+        print("2. View All Appointments")
+        print("3. View Daily Schedule")
+        print("4. Cancel Appointment")
+        print("5. Complete Appointment")
+        print("6. Exit")
+        
+        choice = input("Enter your choice (1-6): ")
+        
+        if choice == '1':
+            print("\nSchedule New Appointment")
+            patient_name = input("Patient name: ")
+            doctor = input("Doctor last name: ")
+            date = input("Date (YYYY-MM-DD): ")
+            time = input("Time (HH:MM): ")
+            reason = input("Reason for visit: ")
+            scheduler.schedule_appointment(patient_name, doctor, date, time, reason)
+        
+        elif choice == '2':
+            print("\n1. View all appointments")
+            print("2. View by doctor")
+            print("3. View by date")
+            view_choice = input("Enter choice (1-3): ")
+            
+            if view_choice == '1':
+                scheduler.view_appointments()
+            elif view_choice == '2':
+                doctor = input("Enter doctor last name: ")
+                scheduler.view_appointments(doctor=doctor)
+            elif view_choice == '3':
+                date = input("Enter date (YYYY-MM-DD): ")
+                scheduler.view_appointments(date=date)
+        
+        elif choice == '3':
+            date = input("Enter date to view (YYYY-MM-DD): ")
+            scheduler.view_daily_schedule(date)
+        
+        elif choice == '4':
+            scheduler.view_appointments()
+            try:
+                appt_id = int(input("Enter appointment ID to cancel: "))
+                scheduler.cancel_appointment(appt_id)
+            except:
+                print("Please enter a valid appointment ID.")
+        
+        elif choice == '5':
+            scheduler.view_appointments()
+            try:
+                appt_id = int(input("Enter appointment ID to mark as completed: "))
+                scheduler.complete_appointment(appt_id)
+            except:
+                print("Please enter a valid appointment ID.")
+        
+        elif choice == '6':
+            print("Thank you for using the Appointment Scheduler")
+            break
+        
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
